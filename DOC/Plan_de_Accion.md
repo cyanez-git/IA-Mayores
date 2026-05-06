@@ -96,11 +96,10 @@ accesible para el usuario. Es más económica, portable y familiar que una RPi.
 ## FASE 6 — Visión y Sensores mmWave 🔲
 **Objetivo:** Detección de caídas y presencia sin cámara en zonas privadas.
 
-**Nota técnica:** Los sensores mmWave usan UART. Para conectarlos a la tablet
-se necesita un puente ESP32 + adaptador USB-OTG (~USD 8 adicionales).
+**Nota técnica:** Se usan sensores mmWave con WiFi integrado. Se conectan
+directamente al router del hogar y publican datos vía MQTT. Sin cables ni intermediarios.
 
-- [ ] Configurar puente ESP32 + USB-OTG para sensores mmWave
-- [ ] Integración sensor mmWave (HiLink LD2450 o Seeed MR60BHA1)
+- [ ] Integración sensor mmWave con WiFi (HiLink LD2410C o Seeed MR60BHA1)
 - [ ] Detección de presencia y caídas por radar
 - [ ] Pipeline de cámara IP vía RTSP (TP-Link Tapo C200 o similar)
 - [ ] MediaPipe sobre feed de cámara: postura "de pie" vs "en el suelo"
@@ -156,14 +155,13 @@ se necesita un puente ESP32 + adaptador USB-OTG (~USD 8 adicionales).
 
 | Componente | Especificación | Precio aprox. | Prioridad |
 |------------|---------------|---------------|-----------|
-| ESP32 + USB-OTG | Puente para sensores mmWave | USD 8 | Alta |
-| Sensor mmWave | HiLink LD2450 (presencia + trayectoria) | USD 15 | Alta |
-| Sensor mmWave | Seeed MR60BHA1 (FC + respiración + caídas) | USD 30 | Media |
-| Cámara IP | TP-Link Tapo C200 (RTSP compatible) | USD 30 | Media |
-| **Subtotal Fase 6** | | **~USD 83** | |
+| Sensor mmWave | HiLink LD2410C (presencia + trayectoria, WiFi) | USD 15 | Alta |
+| Sensor mmWave | Seeed MR60BHA1 (FC + respiración + caídas, WiFi) | USD 30 | Media |
+| Cámara IP | TP-Link Tapo C200 (RTSP compatible, WiFi) | USD 30 | Media |
+| **Subtotal Fase 6** | | **~USD 75** | |
 
 ### Inversión total estimada para prototipo completo
-**~USD 128** (sin contar tablet, que puede ser una existente).
+**~USD 120** (sin contar tablet, que puede ser una existente).
 Comparado con la alternativa RPi (~USD 257), **la tablet reduce el costo a la mitad**.
 
 ---
@@ -171,18 +169,19 @@ Comparado con la alternativa RPi (~USD 257), **la tablet reduce el costo a la mi
 ## Arquitectura de referencia
 
 ```
-[Wearable BLE] ──────────────────────────────┐
-                                              ▼
-[Sensor mmWave] ──UART──► [ESP32] ──USB-OTG──► [Tablet Android]
-                                              │   - Pantalla / UI
-[Cámara IP] ──────────RTSP/WiFi──────────────┘   - Micrófono / Voz
-                                              │   - LangGraph + Agentes
-                                              ▼
-                                      [Cloud / WiFi]
-                                      - Claude Haiku (LLM)
-                                      - Whisper (STT)
-                                      - ElevenLabs (TTS)
-                                      - App Familiar
+[Wearable BLE] ──────────────BT───────────────────────► [Tablet Android]
+[Sensor mmWave WiFi] ──WiFi──► [Router] ──WiFi─────────► [Tablet Android]
+[Cámara IP RTSP] ────WiFi──► [Router] ──WiFi───────────► [Tablet Android]
+                                                               │
+                                                      - Pantalla / UI
+                                                      - Micrófono / Voz
+                                                      - LangGraph + Agentes
+                                                               │
+                                                       [Cloud / WiFi]
+                                                       - Claude Haiku (LLM)
+                                                       - Whisper (STT)
+                                                       - ElevenLabs (TTS)
+                                                       - App Familiar
 ```
 
 **Principios:**
