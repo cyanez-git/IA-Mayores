@@ -12,7 +12,7 @@
 | 1 | Simulación y Agentes | Software | Completo |
 | 2 | Conversación y Memoria | Software | Pendiente |
 | 3 | Tests y Calidad | Software | Pendiente |
-| 4 | Hub y Conectividad IoT | Hardware | Pendiente |
+| 4 | Hub Android y Conectividad IoT | Hardware | Pendiente |
 | 5 | Wearable y Audio | Hardware | Pendiente |
 | 6 | Visión y Sensores mmWave | Hardware | Pendiente |
 | 7 | App Familiar | Software | Pendiente |
@@ -65,27 +65,30 @@
 
 ---
 
-## FASE 4 — Hub y Conectividad IoT 🔲
-**Objetivo:** Levantar el cerebro del sistema en hardware real.
+## FASE 4 — Hub Android y Conectividad IoT 🔲
+**Objetivo:** Correr el sistema en una tablet Android real como hub central.
 
-**Hardware necesario (ver sección HW más abajo)**
+**Decisión de arquitectura:** La tablet Android es el hub principal del producto.
+Concentra pantalla, micrófono, parlante, cámara frontal, WiFi y BT en un solo dispositivo
+accesible para el usuario. Es más económica, portable y familiar que una RPi.
 
-- [ ] Configurar Raspberry Pi 5 con Linux (Raspberry Pi OS)
-- [ ] Instalar dependencias Python en la RPi
-- [ ] Instalar broker MQTT (Mosquitto)
-- [ ] Migrar el código de Fase 1-2 a la RPi
-- [ ] Verificar que el grafo LangGraph corre en la RPi
-- [ ] Conectividad WiFi estable
+- [ ] Instalar Termux en la tablet (entorno Linux en Android)
+- [ ] Instalar Python + dependencias en Termux
+- [ ] Instalar broker MQTT (Mosquitto) en Termux
+- [ ] Migrar el código de Fase 1-2 a la tablet
+- [ ] Verificar que el grafo LangGraph corre correctamente
+- [ ] Configurar inicio automático del sistema al encender la tablet
+- [ ] Conectividad WiFi estable con el router del hogar
 
 ---
 
 ## FASE 5 — Wearable y Audio 🔲
 **Objetivo:** Conectar datos reales de salud y habilitar la voz.
 
-- [ ] Integración BLE con wearable (Bangle.js 2 o similar)
+- [ ] Integración BLE con wearable (Bangle.js 2 o similar) vía app Android
 - [ ] Recepción de FC y acelerómetro reales vía MQTT
-- [ ] Pipeline de audio: captura de voz → Whisper STT → texto
-- [ ] Pipeline de respuesta: texto → ElevenLabs/Azure TTS → audio
+- [ ] Pipeline de audio: micrófono de la tablet → Whisper STT → texto
+- [ ] Pipeline de respuesta: texto → ElevenLabs/Azure TTS → parlante de la tablet
 - [ ] Reemplazar DataSimulator por datos reales del wearable
 
 ---
@@ -93,9 +96,13 @@
 ## FASE 6 — Visión y Sensores mmWave 🔲
 **Objetivo:** Detección de caídas y presencia sin cámara en zonas privadas.
 
+**Nota técnica:** Los sensores mmWave usan UART. Para conectarlos a la tablet
+se necesita un puente ESP32 + adaptador USB-OTG (~USD 8 adicionales).
+
+- [ ] Configurar puente ESP32 + USB-OTG para sensores mmWave
 - [ ] Integración sensor mmWave (HiLink LD2450 o Seeed MR60BHA1)
 - [ ] Detección de presencia y caídas por radar
-- [ ] Pipeline de cámara RTSP (TP-Link Tapo C200 o similar)
+- [ ] Pipeline de cámara IP vía RTSP (TP-Link Tapo C200 o similar)
 - [ ] MediaPipe sobre feed de cámara: postura "de pie" vs "en el suelo"
 - [ ] Fusión de sensores: confirmar caída solo si mmWave + cámara coinciden
 
@@ -117,7 +124,7 @@
 **Objetivo:** Convertir el prototipo en un producto comercializable.
 
 - [ ] Infraestructura cloud (AWS / GCP) para la capa de agentes
-- [ ] Sistema de actualizaciones OTA para el hub
+- [ ] Sistema de actualizaciones OTA para la tablet
 - [ ] Modelo de suscripción implementado
 - [ ] Pruebas de campo con usuarios reales (beta cerrada)
 - [ ] Análisis de regulaciones aplicables (ANMAT en Argentina, FDA si se expande)
@@ -131,38 +138,54 @@
 
 | Componente | Especificación | Precio aprox. | Prioridad |
 |------------|---------------|---------------|-----------|
-| Raspberry Pi 5 | 8GB RAM | USD 80 | Alta |
-| Fuente de alimentación | USB-C 5A oficial | USD 12 | Alta |
-| Cooler / disipador | Activo para RPi 5 | USD 8 | Alta |
-| MicroSD | 64GB Clase 10 (Samsung/SanDisk) | USD 12 | Alta |
-| **Subtotal Fase 4** | | **~USD 112** | |
+| Tablet Android | 4GB+ RAM, Android 10+, WiFi + BT | Ya disponible o ~USD 100 | Alta |
+| **Subtotal Fase 4** | | **~USD 0 si ya tenés una tablet** | |
+
+> Si el cliente ya tiene una tablet compatible, el costo de entrada de la Fase 4 es cero.
 
 ### Para Fase 5 (wearable + audio)
 
 | Componente | Especificación | Precio aprox. | Prioridad |
 |------------|---------------|---------------|-----------|
 | Wearable | Bangle.js 2 (open source, BLE) | USD 45 | Alta |
-| Micrófono USB | Cualquier micrófono USB compacto | USD 15 | Alta |
-| Parlante | USB o Jack 3.5mm | USD 10 | Media |
-| **Subtotal Fase 5** | | **~USD 70** | |
+| **Subtotal Fase 5** | | **~USD 45** | |
+
+> El micrófono y parlante los provee la propia tablet.
 
 ### Para Fase 6 (sensores)
 
 | Componente | Especificación | Precio aprox. | Prioridad |
 |------------|---------------|---------------|-----------|
+| ESP32 + USB-OTG | Puente para sensores mmWave | USD 8 | Alta |
 | Sensor mmWave | HiLink LD2450 (presencia + trayectoria) | USD 15 | Alta |
 | Sensor mmWave | Seeed MR60BHA1 (FC + respiración + caídas) | USD 30 | Media |
 | Cámara IP | TP-Link Tapo C200 (RTSP compatible) | USD 30 | Media |
-| **Subtotal Fase 6** | | **~USD 75** | |
+| **Subtotal Fase 6** | | **~USD 83** | |
 
 ### Inversión total estimada para prototipo completo
-**~USD 257** sin contar tablet ni PC de desarrollo (que ya tenés).
+**~USD 128** (sin contar tablet, que puede ser una existente).
+Comparado con la alternativa RPi (~USD 257), **la tablet reduce el costo a la mitad**.
 
 ---
 
-## Notas de arquitectura
+## Arquitectura de referencia
 
-- El hub (RPi 5) puede reemplazarse por una tablet Android de 4GB+ RAM en versión comercial
-- Los sensores mmWave se conectan a la RPi por UART; para tablet se necesita puente ESP32
-- La arquitectura está diseñada para funcionar 100% offline en caso de caída de internet,
-  escalando a la nube solo para LLM y notificaciones push
+```
+[Wearable BLE] ──────────────────────────────┐
+                                              ▼
+[Sensor mmWave] ──UART──► [ESP32] ──USB-OTG──► [Tablet Android]
+                                              │   - Pantalla / UI
+[Cámara IP] ──────────RTSP/WiFi──────────────┘   - Micrófono / Voz
+                                              │   - LangGraph + Agentes
+                                              ▼
+                                      [Cloud / WiFi]
+                                      - Claude Haiku (LLM)
+                                      - Whisper (STT)
+                                      - ElevenLabs (TTS)
+                                      - App Familiar
+```
+
+**Principios:**
+- La tablet corre offline para funciones críticas (clasificación de alertas)
+- Solo usa la nube para LLM, voz y notificaciones push
+- El cliente puede usar una tablet que ya tiene → baja barrera de entrada
