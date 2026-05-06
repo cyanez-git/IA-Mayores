@@ -1,49 +1,55 @@
 """
-Punto de entrada para la Fase 1: simulación de datos + clasificación de alertas.
-Ejecutar: python src/main.py
+Punto de entrada SAMP - Fase 1 con agentes LangGraph.
+Ejecutar desde la carpeta src/: python -X utf8 main.py
 """
 
-import json
+import os
+from pathlib import Path
+from dotenv import load_dotenv
 from simulator.data_simulator import Scenario, generate
-from router.alert_router import classify, AlertLevel
+from graph import build_graph
 
+load_dotenv(dotenv_path=Path(__file__).parent.parent / ".env", override=True)
 
-SCENARIOS_TO_TEST = [
-    Scenario.NORMAL,
-    Scenario.TACHYCARDIA,
-    Scenario.PANIC_ATTACK,
-    Scenario.FALL,
-    Scenario.INACTIVITY,
+SCENARIOS = [
+    (Scenario.NORMAL,       "elder", "Adulto mayor - estado normal"),
+    (Scenario.TACHYCARDIA,  "elder", "Adulto mayor - taquicardia leve"),
+    (Scenario.PANIC_ATTACK, "panic", "Persona con ataque de panico"),
+    (Scenario.FALL,         "elder", "Adulto mayor - caida detectada"),
 ]
 
-LEVEL_ICONS = {
-    AlertLevel.NORMAL:    "[OK]",
-    AlertLevel.ATTENTION: "[!!]",
-    AlertLevel.EMERGENCY: "[SOS]",
-}
 
+def run():
+    graph = build_graph()
 
-def run_demo():
-    print("=" * 60)
-    print("  SAMP — Sistema de Acompañamiento y Monitoreo Proactivo")
-    print("  Fase 1: Simulación de datos + Router de alertas")
-    print("=" * 60)
+    print("=" * 65)
+    print("  SAMP - Sistema de Acompanamiento y Monitoreo Proactivo")
+    print("  Fase 1: Agentes LangGraph con Claude Haiku")
+    print("=" * 65)
 
-    for scenario in SCENARIOS_TO_TEST:
+    for scenario, profile, label in SCENARIOS:
         reading = generate(scenario)
-        result = classify(reading)
-        icon = LEVEL_ICONS[result.level]
+        print(f"\n{'='*65}")
+        print(f"  {label.upper()}")
+        print(f"  FC={reading['heart_rate']} bpm | impacto={reading['impact_detected']}")
+        print(f"{'='*65}")
 
-        print(f"\nEscenario : {scenario.value.upper()}")
-        print(f"Lectura   : FC={reading['heart_rate']} bpm | "
-              f"impacto={reading['impact_detected']}")
-        print(f"Resultado : {icon} {result.level.value.upper()} - {result.reason}")
-        print(f"Agente    : -> {result.recommended_agent}")
+        result = graph.invoke({
+            "reading": reading,
+            "alert": {},
+            "profile": profile,
+            "response": "",
+            "family_alert": "",
+            "agent_used": "",
+        })
 
-    print("\n" + "=" * 60)
-    print("Fase 1 OK. Próximo paso: integración de agentes LangGraph.")
-    print("=" * 60)
+        print(f"[Alerta]  {result['alert']['level'].upper()} - {result['alert']['reason']}")
+        print(f"[Agente]  {result['agent_used']}")
+        print(f"\n[Respuesta al usuario]\n{result['response']}")
+
+        if result.get("family_alert"):
+            print(f"\n[Notificacion al familiar]\n{result['family_alert']}")
 
 
 if __name__ == "__main__":
-    run_demo()
+    run()
