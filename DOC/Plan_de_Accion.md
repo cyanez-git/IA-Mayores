@@ -65,31 +65,46 @@
 
 ---
 
-## FASE 4 — Hub Android y Conectividad IoT 🔲
-**Objetivo:** Correr el sistema en una tablet Android real como hub central.
+## FASE 4 — Mini PC Hub y Conectividad IoT 🔲
+**Objetivo:** Correr el sistema en una Mini PC Linux como hub central on-premise.
 
-**Decisión de arquitectura:** La tablet Android es el hub principal del producto.
-Concentra pantalla, micrófono, parlante, cámara frontal, WiFi y BT en un solo dispositivo
-accesible para el usuario. Es más económica, portable y familiar que una RPi.
+**Decisión de arquitectura:** La Mini PC es el hub definitivo del producto.
+Corre Linux real sin restricciones de Android, permite LLM local, procesos 24/7
+sin interrupciones, y Python/LangGraph nativos sin adaptaciones.
+No tiene pantalla — la interacción con el usuario es 100% por voz.
 
-- [ ] Instalar Termux en la tablet (entorno Linux en Android)
-- [ ] Instalar Python + dependencias en Termux
-- [ ] Instalar broker MQTT (Mosquitto) en Termux
-- [ ] Migrar el código de Fase 1-2 a la tablet
+- [ ] Instalar Linux en la Mini PC (Ubuntu 24.04 LTS recomendado)
+- [ ] Instalar Python + dependencias del proyecto
+- [ ] Instalar broker MQTT (Mosquitto)
+- [ ] Instalar Ollama + modelo LLM local (Phi-3 mini o Llama 3.2 3B)
+- [ ] Migrar el código de Fase 1-2 a la Mini PC
+- [ ] Configurar inicio automático del sistema como servicio (systemd)
 - [ ] Verificar que el grafo LangGraph corre correctamente
-- [ ] Configurar inicio automático del sistema al encender la tablet
-- [ ] Conectividad WiFi estable con el router del hogar
+
+**Hardware Fase 4:**
+| Componente | Especificación | Precio aprox. |
+|-----------|---------------|---------------|
+| Mini PC | Intel N100, 16GB RAM, 256GB SSD | USD 160-180 |
+| **Subtotal** | | **~USD 170** |
 
 ---
 
 ## FASE 5 — Wearable y Audio 🔲
 **Objetivo:** Conectar datos reales de salud y habilitar la voz.
 
-- [ ] Integración BLE con wearable (Bangle.js 2 o similar) vía app Android
+- [ ] Integración BLE con wearable (Bangle.js 2 o similar) vía bluetoothctl/Linux
 - [ ] Recepción de FC y acelerómetro reales vía MQTT
-- [ ] Pipeline de audio: micrófono de la tablet → Whisper STT → texto
-- [ ] Pipeline de respuesta: texto → ElevenLabs/Azure TTS → parlante de la tablet
+- [ ] Pipeline STT: array mic USB → Whisper local → texto
+- [ ] Pipeline TTS: texto → Piper TTS local → parlante USB
 - [ ] Reemplazar DataSimulator por datos reales del wearable
+
+**Hardware Fase 5:**
+| Componente | Especificación | Precio aprox. |
+|-----------|---------------|---------------|
+| Wearable | Bangle.js 2 (open source, BLE) | USD 45 |
+| Micrófono | ReSpeaker USB Array (campo lejano, cancelación de ruido) | USD 30 |
+| Parlante | USB compacto | USD 15 |
+| **Subtotal** | | **~USD 90** |
 
 ---
 
@@ -122,8 +137,8 @@ directamente al router del hogar y publican datos vía MQTT. Sin cables ni inter
 ## FASE 8 — Producto y Despliegue 🔲
 **Objetivo:** Convertir el prototipo en un producto comercializable.
 
-- [ ] Infraestructura cloud (AWS / GCP) para la capa de agentes
-- [ ] Sistema de actualizaciones OTA para la tablet
+- [ ] Backend cloud mínimo para notificaciones push (Firebase)
+- [ ] Sistema de actualizaciones OTA para la Mini PC (SSH / script)
 - [ ] Modelo de suscripción implementado
 - [ ] Pruebas de campo con usuarios reales (beta cerrada)
 - [ ] Análisis de regulaciones aplicables (ANMAT en Argentina, FDA si se expande)
@@ -131,60 +146,46 @@ directamente al router del hogar y publican datos vía MQTT. Sin cables ni inter
 
 ---
 
-## Hardware necesario por Fase
+## Resumen de Hardware por Fase
 
-### Para arrancar Fase 4 (mínimo indispensable)
+| Fase | Componente | Precio aprox. |
+|------|-----------|---------------|
+| 4 | Mini PC (Intel N100, 16GB RAM, 256GB SSD) | USD 170 |
+| 5 | Wearable Bangle.js 2 | USD 45 |
+| 5 | ReSpeaker USB Array mic | USD 30 |
+| 5 | Parlante USB | USD 15 |
+| 6 | Sensor mmWave WiFi (HiLink LD2410C) | USD 15 |
+| 6 | Sensor mmWave WiFi (Seeed MR60BHA1) | USD 30 |
+| 6 | Cámara IP RTSP (TP-Link Tapo C200) | USD 30 |
+| **Total** | | **~USD 335** |
 
-| Componente | Especificación | Precio aprox. | Prioridad |
-|------------|---------------|---------------|-----------|
-| Tablet Android | 4GB+ RAM, Android 10+, WiFi + BT | Ya disponible o ~USD 100 | Alta |
-| **Subtotal Fase 4** | | **~USD 0 si ya tenés una tablet** | |
-
-> Si el cliente ya tiene una tablet compatible, el costo de entrada de la Fase 4 es cero.
-
-### Para Fase 5 (wearable + audio)
-
-| Componente | Especificación | Precio aprox. | Prioridad |
-|------------|---------------|---------------|-----------|
-| Wearable | Bangle.js 2 (open source, BLE) | USD 45 | Alta |
-| **Subtotal Fase 5** | | **~USD 45** | |
-
-> El micrófono y parlante los provee la propia tablet.
-
-### Para Fase 6 (sensores)
-
-| Componente | Especificación | Precio aprox. | Prioridad |
-|------------|---------------|---------------|-----------|
-| Sensor mmWave | HiLink LD2410C (presencia + trayectoria, WiFi) | USD 15 | Alta |
-| Sensor mmWave | Seeed MR60BHA1 (FC + respiración + caídas, WiFi) | USD 30 | Media |
-| Cámara IP | TP-Link Tapo C200 (RTSP compatible, WiFi) | USD 30 | Media |
-| **Subtotal Fase 6** | | **~USD 75** | |
-
-### Inversión total estimada para prototipo completo
-**~USD 120** (sin contar tablet, que puede ser una existente).
-Comparado con la alternativa RPi (~USD 257), **la tablet reduce el costo a la mitad**.
+> El prototipo puede arrancarse solo con la Mini PC (~USD 170) y añadir componentes fase a fase.
 
 ---
 
 ## Arquitectura de referencia
 
 ```
-[Wearable BLE] ──────────────BT───────────────────────► [Tablet Android]
-[Sensor mmWave WiFi] ──WiFi──► [Router] ──WiFi─────────► [Tablet Android]
-[Cámara IP RTSP] ────WiFi──► [Router] ──WiFi───────────► [Tablet Android]
+[Wearable BLE]       ──BT──────────────────────────────► [Mini PC Linux]
+[Sensor mmWave WiFi] ──WiFi──► [Router] ──WiFi─────────► [Mini PC Linux]
+[Cámara IP RTSP]     ──WiFi──► [Router] ──WiFi─────────► [Mini PC Linux]
+[Micrófono USB]      ──USB──────────────────────────────► [Mini PC Linux]
+[Parlante USB]       ◄──USB─────────────────────────────  [Mini PC Linux]
                                                                │
-                                                      - Pantalla / UI
-                                                      - Micrófono / Voz
-                                                      - LangGraph + Agentes
+                                                    100% ON-PREMISE
+                                                    - LangGraph + Agentes
+                                                    - Ollama (LLM local)
+                                                    - Whisper STT (local)
+                                                    - Piper TTS (local)
+                                                    - MQTT Broker
+                                                    - MediaPipe
                                                                │
-                                                       [Cloud / WiFi]
-                                                       - Claude Haiku (LLM)
-                                                       - Whisper (STT)
-                                                       - ElevenLabs (TTS)
-                                                       - App Familiar
+                                                    Solo notificaciones:
+                                                    [App Familiar - cloud]
 ```
 
 **Principios:**
-- La tablet corre offline para funciones críticas (clasificación de alertas)
-- Solo usa la nube para LLM, voz y notificaciones push
-- El cliente puede usar una tablet que ya tiene → baja barrera de entrada
+- Todo corre on-premise — funciona aunque se caiga internet
+- La nube solo recibe notificaciones push en caso de emergencia
+- Sin pantalla — interacción 100% por voz
+- Dispositivo oculto, el usuario no necesita interactuar con él
