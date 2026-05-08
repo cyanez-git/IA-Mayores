@@ -40,7 +40,35 @@
 **Commits:** 2 (feat: Fase 1 DataSimulator + AlertRouter / feat: Fase 1 agentes LangGraph)
 
 **Pendiente para próxima sesión:**
-- Fase 2: loop de conversación interactiva + memoria de sesión
+- Fase 3: tests unitarios del AlertRouter
+
+---
+
+## 2026-05-08
+
+### Fase 2 completa — Conversación interactiva con memoria
+
+**Código entregado (Fase 2):**
+
+| Archivo | Descripción |
+|---------|-------------|
+| `src/chat.py` | Loop de conversación interactiva por consola |
+| `src/memory/user_profile.py` | Carga/guarda perfil de usuario desde JSON |
+| `src/memory/long_term_memory.py` | Memoria larga con ChromaDB (embeddings locales) |
+| `data/profile.json` | Perfil configurable: nombre, edad, familia, medicación, temas |
+| `src/graph.py` | Estado ampliado: user_input, messages, user_profile, rag_context |
+| `src/agents/empathy_agent.py` | Usa historial de sesión + perfil + contexto RAG |
+
+**Resultado de la demo:**
+- Recuerda el nombre del usuario en cada respuesta ✅
+- Menciona medicación del perfil en el saludo ✅
+- Mantiene hilo de conversación entre turnos (memoria corta) ✅
+- Recupera memorias relevantes de sesiones anteriores (ChromaDB RAG) ✅
+- Responde con contexto geográfico y situacional real ✅
+
+**Comando de ejecución:** `python -X utf8 src/chat.py`
+
+**Pendiente para próxima sesión:**
 - Fase 3: tests unitarios del AlertRouter
 
 ---
