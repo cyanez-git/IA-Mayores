@@ -68,7 +68,29 @@
 
 **Comando de ejecución:** `python -X utf8 src/chat.py`
 
-**Pendiente para próxima sesión:**
-- Fase 3: tests unitarios del AlertRouter
+---
+
+## 2026-05-08 (continuación)
+
+### Fase 3 completa — Tests unitarios del AlertRouter
+
+**Código entregado:**
+
+| Archivo | Descripción |
+|---------|-------------|
+| `tests/test_alert_router.py` | 17 tests unitarios del AlertRouter |
+
+**Cobertura de casos:**
+- Valores normales de FC (mínimo, máximo, media) ✅
+- Límites exactos de umbrales (FC 100, 139, 140, 49, 50 bpm) ✅
+- Detección de caída (impacto + g alto) ✅
+- Caída falsa: impacto sin g suficiente → no EMERGENCY ✅
+- Caída falsa: g alto sin flag de impacto → no EMERGENCY ✅
+- Caída con FC crítica simultánea ✅
+- Todos los resultados tienen motivo no vacío ✅
+
+**Resultado:** 17/17 passed en 0.06s
+
+**Comando de ejecución:** `pytest tests/ -v`
 
 ---
