@@ -1,0 +1,14 @@
+{
+  "name": "Roberto",
+  "age": 75,
+  "condition": "elder",
+  "family_contact": {
+    "name": "María",
+    "phone": "+54911234567",
+    "relation": "hija"
+  },
+  "preferences": {
+    "topics": ["fútbol", "jardín", "nietos"],
+    "medication_schedule": "08:00 y 20:00"
+  }
+}

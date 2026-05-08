@@ -12,7 +12,11 @@ from agents import empathy_agent, triage_agent
 class SAMPState(TypedDict):
     reading: dict
     alert: dict
-    profile: str        # "elder" | "panic"
+    profile: str            # "elder" | "panic"
+    user_profile: dict      # perfil completo desde profile.json
+    user_input: str         # mensaje del usuario en este turno
+    messages: list          # historial: [{"role": "user"|"assistant", "content": str}]
+    rag_context: list       # memorias recuperadas de ChromaDB
     response: str
     family_alert: str
     agent_used: str

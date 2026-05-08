@@ -4,11 +4,11 @@ Cubre dos perfiles: adulto mayor (compania) y persona con panico/hipocondria (co
 """
 
 from langchain_anthropic import ChatAnthropic
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
 MODEL = "claude-haiku-4-5-20251001"
 
-SYSTEM_PROMPT = """Eres SAMP, un asistente de salud y compania inteligente.
+_BASE_SYSTEM = """Eres SAMP, un asistente de salud y compania inteligente.
 Tu rol principal es brindar tranquilidad, compania y contencion emocional.
 
 Tenes dos modos segun el contexto que te indiquen:
@@ -30,30 +30,82 @@ Reglas generales:
 """
 
 
+def _build_system(state: dict) -> str:
+    profile = state.get("user_profile", {})
+    rag_context = state.get("rag_context", [])
+
+    system = _BASE_SYSTEM
+
+    name = profile.get("name", "")
+    age = profile.get("age")
+    topics = profile.get("preferences", {}).get("topics", [])
+    meds = profile.get("preferences", {}).get("medication_schedule", "")
+
+    if name:
+        system += f"\nEl nombre de la persona es {name}."
+    if age:
+        system += f" Tiene {age} años."
+    if topics:
+        system += f" Sus temas favoritos son: {', '.join(topics)}."
+    if meds:
+        system += f" Toma medicación a las {meds}."
+
+    if rag_context:
+        system += "\n\nRecuerdos relevantes de conversaciones anteriores:\n"
+        system += "\n".join(f"- {m}" for m in rag_context)
+
+    return system
+
+
 def run(state: dict) -> dict:
     reading = state["reading"]
     alert = state["alert"]
-    profile = state.get("profile", "elder")  # "elder" o "panic"
+    profile = state.get("profile", "elder")
+    user_input = state.get("user_input", "")
+    history = state.get("messages", [])
 
     hr = reading["heart_rate"]
     alert_level = alert["level"]
     reason = alert["reason"]
 
-    if profile == "panic":
-        user_msg = (
-            f"La persona tiene FC={hr} bpm y reporta angustia. "
-            f"Situacion: {reason}. "
-            f"Genera una respuesta de contencion en MODO CONTENCION."
+    system = _build_system(state)
+    sensor_note = f"[Sensores: FC={hr} bpm, nivel={alert_level}, {reason}]"
+
+    lc_messages: list = [SystemMessage(content=system + f"\n\n{sensor_note}")]
+
+    # Agregar historial (ultimos 10 turnos para no inflar el context)
+    for msg in history[-10:]:
+        if msg["role"] == "user":
+            lc_messages.append(HumanMessage(content=msg["content"]))
+        else:
+            lc_messages.append(AIMessage(content=msg["content"]))
+
+    # Mensaje actual del usuario o check-in automático
+    if user_input:
+        lc_messages.append(HumanMessage(content=user_input))
+    elif profile == "panic":
+        lc_messages.append(
+            HumanMessage(
+                content=f"[SAMP inicia contacto: {reason}. Modo CONTENCION.]"
+            )
         )
     else:
-        user_msg = (
-            f"La persona tiene FC={hr} bpm. Situacion: {reason}. "
-            f"Nivel de alerta: {alert_level}. "
-            f"Genera una respuesta apropiada en MODO COMPANIA."
+        lc_messages.append(
+            HumanMessage(content=f"[SAMP hace check-in: {reason}]")
         )
 
     llm = ChatAnthropic(model=MODEL, max_tokens=300)
-    messages = [SystemMessage(content=SYSTEM_PROMPT), HumanMessage(content=user_msg)]
-    response = llm.invoke(messages)
+    response = llm.invoke(lc_messages)
 
-    return {**state, "response": response.content, "agent_used": "empathy"}
+    # Actualizar historial
+    new_history = list(history)
+    if user_input:
+        new_history.append({"role": "user", "content": user_input})
+    new_history.append({"role": "assistant", "content": response.content})
+
+    return {
+        **state,
+        "response": response.content,
+        "agent_used": "empathy",
+        "messages": new_history,
+    }
