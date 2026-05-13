@@ -84,7 +84,7 @@ No tiene pantalla — la interacción con el usuario es 100% por voz.
 **Hardware Fase 4:**
 | Componente | Especificación | Precio aprox. |
 |-----------|---------------|---------------|
-| Mini PC | Intel N100, 16GB RAM, 256GB SSD | USD 160-180 |
+| Mini PC | Intel i7, 16GB RAM, 256GB SSD | USD 250-300 |
 | **Subtotal** | | **~USD 170** |
 
 ---
@@ -150,7 +150,7 @@ directamente al router del hogar y publican datos vía MQTT. Sin cables ni inter
 
 | Fase | Componente | Precio aprox. |
 |------|-----------|---------------|
-| 4 | Mini PC (Intel N100, 16GB RAM, 256GB SSD) | USD 170 |
+| 4 | Mini PC (Intel i7, 16GB RAM, 256GB SSD) | USD 275 |
 | 5 | Wearable Bangle.js 2 | USD 45 |
 | 5 | ReSpeaker USB Array mic | USD 30 |
 | 5 | Parlante USB | USD 15 |
@@ -159,7 +159,7 @@ directamente al router del hogar y publican datos vía MQTT. Sin cables ni inter
 | 6 | Cámara IP RTSP (TP-Link Tapo C200) | USD 30 |
 | **Total** | | **~USD 335** |
 
-> El prototipo puede arrancarse solo con la Mini PC (~USD 170) y añadir componentes fase a fase.
+> El prototipo puede arrancarse solo con la Mini PC (~USD 275) y añadir componentes fase a fase.
 
 ---
 
