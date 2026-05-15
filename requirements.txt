@@ -3,3 +3,14 @@ langchain>=0.3
 langchain-anthropic>=0.3
 python-dotenv>=1.0
 chromadb>=0.5
+
+# Fase 5 — Wearable y Audio
+paho-mqtt>=2.0
+bleak>=0.21              # BLE (Mi Band / wearable real)
+faster-whisper>=1.0      # STT local
+sounddevice>=0.4         # captura de micrófono
+soundfile>=0.12          # I/O de audio
+
+# Fase 6 — Visión y Sensores
+opencv-python>=4.9       # procesamiento de cámara RTSP
+mediapipe>=0.10          # detección de postura
