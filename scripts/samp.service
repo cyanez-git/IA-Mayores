@@ -1,0 +1,18 @@
+[Unit]
+Description=SAMP — Sistema de Acompañamiento y Monitoreo Proactivo
+After=network.target mosquitto.service ollama.service
+Wants=mosquitto.service ollama.service
+
+[Service]
+Type=simple
+User=__USER__
+WorkingDirectory=__PROJECT_DIR__
+ExecStart=__VENV_DIR__/bin/python -X utf8 src/chat.py
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+Environment=PYTHONUNBUFFERED=1
+
+[Install]
+WantedBy=multi-user.target
