@@ -1,6 +1,11 @@
 """
-BLE reader para wearable (Mi Band 8 o similar).
+BLE reader para wearable (Xiaomi Smart Band 9 Active o similar).
 MOCK_MODE=true genera datos simulados sin hardware.
+
+Variables de entorno para modo real:
+    MOCK_MODE=false
+    WEARABLE_MAC=XX:XX:XX:XX:XX:XX   (MAC del Smart Band)
+    XIAOMI_AUTH_KEY=<hex 32 chars>   (clave de autenticación)
 """
 import asyncio
 import json
@@ -63,23 +68,40 @@ def _mock_reading() -> WearableReading:
 
 
 async def _real_reading(mac: str) -> WearableReading:
-    """Lee datos reales del wearable vía BLE (bleak)."""
+    """Lee datos reales del Xiaomi Smart Band 9 Active."""
+    from src.wearable.xiaomi_band import XiaomiBand, find_band
+
+    auth_key = os.getenv("XIAOMI_AUTH_KEY", "")
+    target = mac or await find_band()
+    if not target:
+        print("[BLE] No se encontró el dispositivo. Usando mock.")
+        return _mock_reading()
+
+    band = XiaomiBand(target, auth_key)
     try:
-        from bleak import BleakClient
-        # UUIDs estándar para HR (0x2A37) y acelerómetro varían por dispositivo.
-        # Para Mi Band 8 usar miband-python o gadgetbridge protocol.
-        async with BleakClient(mac) as client:
-            hr_data = await client.read_gatt_char("00002a37-0000-1000-8000-00805f9b34fb")
-            hr = hr_data[1] if len(hr_data) > 1 else hr_data[0]
-            return WearableReading(
-                heart_rate=hr,
-                accel_x=0.0, accel_y=0.0, accel_z=1.0,
-                impact_detected=False,
-                timestamp=time.time(),
-            )
+        connected = await band.connect()
+        if not connected:
+            return _mock_reading()
+
+        await band.read_battery()
+        await band.read_steps()
+        await band.start_heart_rate()
+        await asyncio.sleep(3)   # espera lectura FC
+
+        reading = await band.get_reading()
+        return WearableReading(
+            heart_rate=reading.heart_rate,
+            accel_x=reading.accel_x,
+            accel_y=reading.accel_y,
+            accel_z=reading.accel_z,
+            impact_detected=reading.impact_detected,
+            timestamp=reading.timestamp,
+        )
     except Exception as e:
         print(f"[BLE] Error leyendo wearable: {e}. Usando mock.")
         return _mock_reading()
+    finally:
+        await band.disconnect()
 
 
 def start_publisher(interval_seconds: int = 5):
