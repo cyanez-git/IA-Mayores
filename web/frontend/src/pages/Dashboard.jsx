@@ -1,4 +1,6 @@
+import { useEffect, useState } from 'react'
 import { useWebSocket } from '../hooks/useWebSocket'
+import { getCameraStatus } from '../api'
 import { Card } from '../components/Card'
 import { StatusBadge } from '../components/StatusBadge'
 import { Activity, Cpu, MemoryStick, Watch, Camera, Radio } from 'lucide-react'
@@ -34,6 +36,14 @@ function DeviceCard({ icon: Icon, label, connected, value }) {
 
 export default function Dashboard() {
   const { data, connected } = useWebSocket()
+  const [cameraStatus, setCameraStatus] = useState(null)
+
+  useEffect(() => {
+    const fetch = () => getCameraStatus().then(r => setCameraStatus(r.data)).catch(() => {})
+    fetch()
+    const t = setInterval(fetch, 10000)
+    return () => clearInterval(t)
+  }, [])
 
   const hr = data?.wearable?.heart_rate
   const cpu = data?.cpu ?? 0
@@ -94,8 +104,8 @@ export default function Dashboard() {
           <DeviceCard
             icon={Camera}
             label="Cámara IP"
-            connected={false}
-            value="Verificar conexión RTSP"
+            connected={cameraStatus?.reachable ?? false}
+            value={cameraStatus?.rtsp_url ? 'RTSP configurado' : 'Sin configurar'}
           />
           <DeviceCard
             icon={Radio}
