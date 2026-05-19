@@ -54,12 +54,6 @@ async def dump_services(mac: str):
             for char in service.characteristics:
                 props = ", ".join(char.properties)
                 print(f"  Característica: {char.uuid}  [{props}]")
-                if "read" in char.properties:
-                    try:
-                        val = await client.read_gatt_char(char.uuid)
-                        print(f"    Valor actual: {val.hex()} ({list(val)})")
-                    except Exception:
-                        pass
             print()
 
 
