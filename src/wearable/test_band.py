@@ -22,17 +22,33 @@ async def main(mac: str):
         print("No se pudo conectar.")
         return
 
-    print(f"Conectado!")
+    print("Conectado!\n")
 
+    # Batería — funciona sin auth key (BLE estándar)
+    print("Leyendo batería...")
     bat = await band.read_battery()
-    print(f"Batería: {bat}%")
+    if bat > 0:
+        print(f"  Batería: {bat}%")
+    else:
+        print("  Batería: no disponible")
 
-    print("Iniciando FC (esperando 10 segundos)...")
-    await band.start_heart_rate(callback=lambda hr: print(f"FC: {hr} bpm"))
-    await asyncio.sleep(10)
+    # FC — requiere auth key
+    if not auth_key:
+        print("\nFC: omitido (no hay XIAOMI_AUTH_KEY)")
+        print("  → Obtené la clave con Gadgetbridge y configurá XIAOMI_AUTH_KEY en .env")
+    else:
+        print("\nIniciando FC (esperando 10 segundos)...")
+        hr_started = await band.start_heart_rate(callback=lambda hr: print(f"  FC: {hr} bpm"))
+        if hr_started:
+            await asyncio.sleep(10)
+        else:
+            print("  FC: no disponible — verificá la auth key")
 
     reading = await band.get_reading()
-    print(f"\nResumen: FC={reading.heart_rate} bpm  Batería={reading.battery}%")
+    print(f"\n{'='*40}")
+    print(f"  FC:      {reading.heart_rate} bpm" if reading.heart_rate else "  FC:      —")
+    print(f"  Batería: {reading.battery}%" if reading.battery else "  Batería: —")
+    print(f"{'='*40}\n")
 
     await band.disconnect()
 

@@ -116,10 +116,16 @@ class XiaomiBand:
 
     async def read_battery(self) -> int:
         try:
-            data = await self._client.read_gatt_char(UUID_BATTERY)
+            data = await asyncio.wait_for(
+                self._client.read_gatt_char(UUID_BATTERY),
+                timeout=5.0,
+            )
             self._battery = data[0]
             log.info(f"[Band] Batería: {self._battery}%")
             return self._battery
+        except asyncio.TimeoutError:
+            log.warning("[Band] Timeout leyendo batería")
+            return 0
         except Exception as e:
             log.warning(f"[Band] No se pudo leer batería: {e}")
             return 0
@@ -127,8 +133,8 @@ class XiaomiBand:
     async def read_steps(self) -> int:
         return self._steps
 
-    async def start_heart_rate(self, callback=None):
-        """Inicia monitoreo continuo de FC vía servicio aa01."""
+    async def start_heart_rate(self, callback=None) -> bool:
+        """Inicia monitoreo continuo de FC vía servicio aa01. Retorna True si logró iniciar."""
         def on_health(sender, data: bytearray):
             log.debug(f"[Band] Health notify: {data.hex()}")
             if len(data) >= 2 and data[0] == 0x03:
@@ -141,14 +147,22 @@ class XiaomiBand:
 
         try:
             await self._client.start_notify(UUID_HEALTH_NOTIFY, on_health)
-            await self._client.write_gatt_char(UUID_HEALTH_WRITE, CMD_HR_START)
+            await asyncio.wait_for(
+                self._client.write_gatt_char(UUID_HEALTH_WRITE, CMD_HR_START, response=False),
+                timeout=5.0,
+            )
             log.info("[Band] Monitoreo FC iniciado")
+            return True
+        except asyncio.TimeoutError:
+            log.warning("[Band] Timeout al iniciar FC — puede requerir auth_key")
+            return False
         except Exception as e:
             log.error(f"[Band] Error iniciando FC: {e}")
+            return False
 
     async def stop_heart_rate(self):
         try:
-            await self._client.write_gatt_char(UUID_HEALTH_WRITE, CMD_HR_STOP)
+            await self._client.write_gatt_char(UUID_HEALTH_WRITE, CMD_HR_STOP, response=False)
             await self._client.stop_notify(UUID_HEALTH_NOTIFY)
         except Exception:
             pass
