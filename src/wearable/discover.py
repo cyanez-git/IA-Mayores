@@ -31,7 +31,7 @@ async def scan(duration: int = 10):
         for d in xiaomi:
             print(f"  📱 {d.name}")
             print(f"     MAC: {d.address}")
-            print(f"     RSSI: {d.rssi} dBm")
+            print(f"     RSSI: {getattr(d, 'rssi', 'N/A')} dBm")
             print()
     else:
         print("No se encontraron dispositivos Xiaomi.\n")
